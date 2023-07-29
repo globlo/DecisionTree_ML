@@ -1,0 +1,6 @@
+
+Desicion Tree structure
+https://www.geeksforgeeks.org/decision-tree-implementation-python/
+
+N-children Tree generation 
+https://www.geeksforgeeks.org/number-children-given-node-n-ary-tree/
