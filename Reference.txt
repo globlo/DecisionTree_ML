@@ -4,3 +4,6 @@ https://www.geeksforgeeks.org/decision-tree-implementation-python/
 
 N-children Tree generation 
 https://www.geeksforgeeks.org/number-children-given-node-n-ary-tree/
+
+Recursive Tree generation
+https://darden.hatenablog.com/entry/2016/12/15/222447
