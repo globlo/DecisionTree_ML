@@ -1,6 +1,6 @@
 import pandas as pd
 import math
-max_height = 2
+
 # Node of a linked list
 class Node:
     def __init__(self,data):
@@ -11,11 +11,12 @@ class Node:
     
         self.child = []
         self.leaf = False
-        self.gain = 0
-
+        self.height = 0
+        
         self.domains = dict()
         self.get_domains(data)
         
+        self.gain = 0
         self.p = self.domains['Outputy']['Yes'] if "Yes" in self.domains['Outputy'] else 0
         self.n = self.domains['Outputy']['No'] if "No" in self.domains['Outputy'] else 0
 
@@ -58,10 +59,10 @@ class Node:
         if len(self.domains['Outputy']) == 1:
             self.leaf = True
 
-def print_class(cu, count):  
+def print_class(cu):  
 
     # print("height is ", count)
-    print("    |-----"*count, cu.cls)
+    print("    |-----"*cu.height, cu.cls)
 
     # if cu.selected_feature == "": print("LEAF")
     # else: print('')
@@ -69,15 +70,15 @@ def print_class(cu, count):
     if cu.leaf: return
 
     for child in cu.child:
-        print_class(child, count + 1)
+        print_class(child)
         
     
     return
 
-def print_feature(cu, count):  
+def print_feature(cu):  
 
     # print("height is ", count)
-    print("    |-----"*count, cu.selected_feature, end="")
+    print("    |-----"*cu.height, cu.selected_feature, end="")
 
     if cu.selected_feature == "": print("LEAF")
     else: print('')
@@ -85,23 +86,23 @@ def print_feature(cu, count):
     if cu.leaf: return
 
     for child in cu.child:
-        print_feature(child, count + 1)
+        print_feature(child)
         
     
     return
 
-def print_datas(cu, count):  # take variable that wants to print
+def print_datas(cu):  # take variable that wants to print
 
     print("Selected Feature: ", cu.selected_feature, end="")
-    if cu.selected_feature == "": print("[LEAF]"," - Height:(",count,")" )
-    else: print(" - Height:(",count,")" )
+    if cu.selected_feature == "": print("[LEAF]"," - Height:(",cu.height,")" )
+    else: print(" - Height:(",cu.height,")" )
 
     print(cu.data, end="\n\n\n")
 
     if cu.leaf: return
 
     for child in cu.child:
-        print_datas(child, count + 1)   
+        print_datas(child)   
     
     return
 
@@ -160,9 +161,11 @@ def select_importance(node):
     node.selected_feature = feature
 
 
-def learn_decision_tree(cu, count):
+def learn_decision_tree(cu, height):
 
-    if cu.leaf or count >= max_height:  
+    cu.height = height
+
+    if cu.leaf:  
         return 
 
     if len(cu.domains) == 1:  # check if attributes is empty
@@ -172,17 +175,10 @@ def learn_decision_tree(cu, count):
 
     cu.generate_childs(cu.selected_feature)
     for child in cu.child:
-        learn_decision_tree(child, count+1)
+        learn_decision_tree(child, height+1)
 
     return
 
-
-# def classify(cu, data):
-
-#     if cu.leaf:
-#         return cu.domains
-
-#     return
 
 def main():
 
@@ -191,9 +187,9 @@ def main():
     # print(root.data)
 
     learn_decision_tree(root, 0)
-    print_feature(root, 0)
-    # print_class(root, 0)
-    # print_datas(root, 0)
+    # print_feature(root)
+    # print_class(root)
+    print_datas(root)
 
 
     p_data = pd.read_csv('restaurant_predict.csv', header = 0)
