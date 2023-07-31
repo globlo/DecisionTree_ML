@@ -50,7 +50,6 @@ class Node:
             new_node = Node(new_data)
             (self.child).append(new_node)
 
-
             new_node.is_leaf()
         
         return
@@ -58,6 +57,17 @@ class Node:
     def is_leaf(self):
         if len(self.domains['Outputy']) == 1:
             self.leaf = True
+
+    def is_twig(self):
+
+        if self.leaf or self.height <= 1:
+            return False
+        
+        for child in self.child:
+            if not child.leaf:
+                return False
+            
+        return True
 
 def print_class(cu):  
 
@@ -79,6 +89,10 @@ def print_feature(cu):
 
     # print("height is ", count)
     print("    |-----"*cu.height, cu.selected_feature, end="")
+
+    if cu.is_twig():
+        print("(twig)", end="")
+      
 
     if cu.selected_feature == "": print("LEAF")
     else: print('')
@@ -179,6 +193,29 @@ def learn_decision_tree(cu, height):
 
     return
 
+def prune_tree(cu):
+
+    if cu.leaf:  
+        # print( "reach to the leaf")
+        return 
+    
+    select = None
+    least_gain = 1.1  # since Gain range: 0-1
+    for child in cu.child:
+        if child.is_twig() and child.gain < least_gain:
+            select = child
+            least_gain = child.gain
+            
+        prune_tree(child)
+
+    if select != None:  ## trim the twig
+        # print("the selected : ")
+        # print(select.selected_feature)
+        select.leaf = True
+        select.selected_feature = ""
+
+    return
+
 
 def main():
 
@@ -187,12 +224,17 @@ def main():
     # print(root.data)
 
     learn_decision_tree(root, 0)
-    # print_feature(root)
+    print_feature(root)
     # print_class(root)
-    print_datas(root)
+    # print_datas(root)
+    prune_tree(root)
+
+    print("after trim")
+    print_feature(root)
+    print_class(root)
 
 
-    p_data = pd.read_csv('restaurant_predict.csv', header = 0)
+    # p_data = pd.read_csv('restaurant_predict.csv', header = 0)
 
 
 
