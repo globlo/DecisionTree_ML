@@ -68,16 +68,32 @@ class Node:
                 return False
             
         return True
+    
+def print_feature_class(cu):
+
+    if cu.leaf: 
+        print("    |-----|"*cu.height, cu.cls)
+        return
+
+    print("    |-----|"*cu.height, cu.selected_feature, end="")
+    print("( Gain:","{:.2f}".format(cu.gain),")")
+
+    for child in cu.child:
+        print_feature_class(child)
+        
+    
+    return
+
+
+
 
 def print_class(cu):  
 
     # print("height is ", count)
     print("    |-----"*cu.height, cu.cls)
 
-    # if cu.selected_feature == "": print("LEAF")
-    # else: print('')
-
-    if cu.leaf: return
+    if cu.leaf: 
+        return
 
     for child in cu.child:
         print_class(child)
@@ -231,7 +247,9 @@ def main():
 
     print("after trim")
     print_feature(root)
-    print_class(root)
+    # print_class(root)
+
+    print_feature_class(root)
 
 
     # p_data = pd.read_csv('restaurant_predict.csv', header = 0)
