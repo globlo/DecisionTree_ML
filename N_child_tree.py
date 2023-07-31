@@ -1,5 +1,3 @@
-# Python3 program to find number
-# of children of given node
 
 # Node of a linked list
 class Node:
@@ -7,8 +5,7 @@ class Node:
 		self.key = data
 		self.child = []
 
-# Function to calculate number
-# of children of given node
+
 def numberOfChildren( root, x):
 
 	# initialize the numChildren as 0

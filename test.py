@@ -5,19 +5,19 @@ import math
 class Node:
     def __init__(self,data):
 
-        self.data = data
         self.selected_feature = ""
-        self.depth = 0
-        self.leaf = False
+        self.data = data
+    
         self.child = []
+        self.leaf = False
         self.gain = 0
-        self.entropy = 0
 
         self.domains = dict()
         self.get_domains(data)
         
         self.p = self.domains['Outputy']['Yes'] if "Yes" in self.domains['Outputy'] else 0
         self.n = self.domains['Outputy']['No'] if "No" in self.domains['Outputy'] else 0
+
         
     def get_domains(self,data):
 
@@ -30,30 +30,63 @@ class Node:
                 else:
                     self.domains[col_name][dt] = 1
 
-        print(self.domains)
+        # print(self.domains)
         
 
-    def generate_childs(self, parent, feature): #generate new data to child nodes
+    def generate_childs(self, feature): #chk if leaf
         
         for key in self.domains[feature].keys(): 
-            new_data = self.data[self.data[feature] == key].drop(feature, axis=1)  # grouping the new dataset
-            new_node = Node(new_data)
-            (parent.child).append(new_node)
 
-            print("new_node.data")  
-            print(new_data)    
-            print("end")   
-            new_node.check_if_leaf()
+            new_data = self.data[self.data[feature] == key].drop(feature, axis=1)  # grouping the new dataset
+            new_data.reset_index(inplace=True, drop=True) 
+
+            new_node = Node(new_data)
+            (self.child).append(new_node)
+
+
+            new_node.is_leaf()
         
         return
-
-    def check_if_leaf(self):
+            
+    def is_leaf(self):
         if len(self.domains['Outputy']) == 1:
             self.leaf = True
 
+
+def print_tree(cu, count):  # take variable that wants to print
+
+    # print("height is ", count)
+    print("    |-----"*count, cu.selected_feature, end="")
+
+    if cu.selected_feature == "": print("LEAF")
+    else: print('')
+
+    if cu.leaf: return
+
+    for child in cu.child:
+        print_tree(child, count + 1)
+        
+    
+    return
+
+def print_datas(cu, count):  # take variable that wants to print
+
+    print("Selected Feature: ", cu.selected_feature, end="")
+    if cu.selected_feature == "": print("[LEAF]"," - Height:(",count,")" )
+    else: print(" - Height:(",count,")" )
+
+    print(cu.data, end="\n\n\n")
+
+    if cu.leaf: return
+
+    for child in cu.child:
+        print_datas(child, count + 1)
+        
+    
+    return
+
 def Gain(node, feature):
-    # print("gian faeture is ", feature)
-    # print(node.p)
+
     q = node.p/(node.p+node.n)
     return Entropy(q) - reminder(node, feature)
 
@@ -70,6 +103,7 @@ def reminder(node, feature):
 
     data = node.data
     domains = node.domains
+
     p = node.p
     n = node.n
     sum = 0
@@ -77,11 +111,12 @@ def reminder(node, feature):
     for key in domains[feature].keys():  # iterate through every element in domain
         # print(key)
         pk = nk = 0
-
+        
         for vi in range(len(data[feature])):  # iterate through every rows of current col
-            if data[feature][vi] == key and data['Outputy'][vi] == 'Yes':
+
+            if data.loc[vi, feature] == key and data.loc[vi, 'Outputy'] == 'Yes':
                 pk = pk + 1
-            elif data[feature][vi] == key and data['Outputy'][vi] == 'No':
+            elif data.loc[vi, feature] == key and data.loc[vi, 'Outputy'] == 'No':
                 nk = nk + 1
 
         sum = sum + ((pk+nk)/(p+n) * Entropy(pk/(pk+nk)))
@@ -92,7 +127,7 @@ def reminder(node, feature):
 # select the importance // feature selection
 def select_importance(node):
 
-    x_data = node.data.drop('Outputy', axis=1)
+    x_data = node.data.drop('Outputy', axis=1) # drop last column
     
     max_gain = 0
     feature = ''
@@ -107,29 +142,41 @@ def select_importance(node):
 
 def learn_decision_tree(cu):
 
-    if cu.leaf:
-        print("this is leaf")
-        return 
-    
-    select_importance(cu)
-    print("the feature selected: ")
-    print(cu.selected_feature)
+    if cu.leaf: return
+
+    if len(cu.domains) == 1:  # check if attributes is empty
+        return
+        
+    select_importance(cu)  ## feature selection
+
+    cu.generate_childs(cu.selected_feature)
+    for child in cu.child:
+        learn_decision_tree(child)
 
     return
 
 
+# def classify(cu, data):
+
+#     if cu.leaf:
+#         return cu.domains
+
+#     return
+
 def main():
 
-    data = pd.read_csv('test.csv', header = 0)
-
+    data = pd.read_csv('restaurant.csv', header = 0)
     root = Node(data)
-    print(root.data)
-    # root.generate_childs(root, 'A2')
-    # print(root.child[0].data)
+    # print(root.data)
 
     learn_decision_tree(root)
-    # learn_decision_tree(root.child[0])
-    # learn_decision_tree(root.child[1])
+    print_tree(root, 0)
+    # print_datas(root, 0)
+    print("after pruning")
+    # print_tree(root,0)
+
+    p_data = pd.read_csv('restaurant_predict.csv', header = 0)
+
 
 
 # Calling main function
