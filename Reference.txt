@@ -7,3 +7,6 @@ https://www.geeksforgeeks.org/number-children-given-node-n-ary-tree/
 
 Recursive Tree generation
 https://darden.hatenablog.com/entry/2016/12/15/222447
+
+Trip twig
+https://www.cs.cmu.edu/~bhiksha/courses/10-601/decisiontrees/#:~:text=Pruning%20by%20Information%20Gain&text=This%20procedure%20does%20not%20require,whose%20children%20are%20all%20leaves.

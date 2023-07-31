@@ -1,10 +1,11 @@
 import pandas as pd
 import math
-
+max_height = 2
 # Node of a linked list
 class Node:
     def __init__(self,data):
 
+        self.cls =""
         self.selected_feature = ""
         self.data = data
     
@@ -17,6 +18,11 @@ class Node:
         
         self.p = self.domains['Outputy']['Yes'] if "Yes" in self.domains['Outputy'] else 0
         self.n = self.domains['Outputy']['No'] if "No" in self.domains['Outputy'] else 0
+
+        self.get_class()
+    
+    def get_class(self):
+        self.cls = max(self.domains['Outputy'], key=self.domains['Outputy'].get)  # classify
 
         
     def get_domains(self,data):
@@ -52,8 +58,23 @@ class Node:
         if len(self.domains['Outputy']) == 1:
             self.leaf = True
 
+def print_class(cu, count):  
 
-def print_tree(cu, count):  # take variable that wants to print
+    # print("height is ", count)
+    print("    |-----"*count, cu.cls)
+
+    # if cu.selected_feature == "": print("LEAF")
+    # else: print('')
+
+    if cu.leaf: return
+
+    for child in cu.child:
+        print_class(child, count + 1)
+        
+    
+    return
+
+def print_feature(cu, count):  
 
     # print("height is ", count)
     print("    |-----"*count, cu.selected_feature, end="")
@@ -64,7 +85,7 @@ def print_tree(cu, count):  # take variable that wants to print
     if cu.leaf: return
 
     for child in cu.child:
-        print_tree(child, count + 1)
+        print_feature(child, count + 1)
         
     
     return
@@ -80,8 +101,7 @@ def print_datas(cu, count):  # take variable that wants to print
     if cu.leaf: return
 
     for child in cu.child:
-        print_datas(child, count + 1)
-        
+        print_datas(child, count + 1)   
     
     return
 
@@ -140,9 +160,10 @@ def select_importance(node):
     node.selected_feature = feature
 
 
-def learn_decision_tree(cu):
+def learn_decision_tree(cu, count):
 
-    if cu.leaf: return
+    if cu.leaf or count >= max_height:  
+        return 
 
     if len(cu.domains) == 1:  # check if attributes is empty
         return
@@ -151,7 +172,7 @@ def learn_decision_tree(cu):
 
     cu.generate_childs(cu.selected_feature)
     for child in cu.child:
-        learn_decision_tree(child)
+        learn_decision_tree(child, count+1)
 
     return
 
@@ -169,11 +190,11 @@ def main():
     root = Node(data)
     # print(root.data)
 
-    learn_decision_tree(root)
-    print_tree(root, 0)
+    learn_decision_tree(root, 0)
+    print_feature(root, 0)
+    # print_class(root, 0)
     # print_datas(root, 0)
-    print("after pruning")
-    # print_tree(root,0)
+
 
     p_data = pd.read_csv('restaurant_predict.csv', header = 0)
 
