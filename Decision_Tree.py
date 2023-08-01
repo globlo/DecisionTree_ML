@@ -1,5 +1,6 @@
 import pandas as pd
-import math
+from print import *
+from Information_Gain import *
 
 # Node of a linked list
 class Node:
@@ -68,127 +69,7 @@ class Node:
                 return False
             
         return True
-    
-def print_feature_class(cu):
-
-    if cu.leaf: 
-        print("    |-----|"*cu.height, cu.cls)
-        return
-
-    print("    |-----|"*cu.height, cu.selected_feature, end="")
-    print("( Gain:","{:.2f}".format(cu.gain),")")
-
-    for child in cu.child:
-        print_feature_class(child)
-        
-    
-    return
-
-
-
-
-def print_class(cu):  
-
-    # print("height is ", count)
-    print("    |-----"*cu.height, cu.cls)
-
-    if cu.leaf: 
-        return
-
-    for child in cu.child:
-        print_class(child)
-        
-    
-    return
-
-def print_feature(cu):  
-
-    # print("height is ", count)
-    print("    |-----"*cu.height, cu.selected_feature, end="")
-
-    if cu.is_twig():
-        print("(twig)", end="")
-      
-
-    if cu.selected_feature == "": print("LEAF")
-    else: print('')
-
-    if cu.leaf: return
-
-    for child in cu.child:
-        print_feature(child)
-        
-    
-    return
-
-def print_datas(cu):  # take variable that wants to print
-
-    print("Selected Feature: ", cu.selected_feature, end="")
-    if cu.selected_feature == "": print("[LEAF]"," - Height:(",cu.height,")" )
-    else: print(" - Height:(",cu.height,")" )
-
-    print(cu.data, end="\n\n\n")
-
-    if cu.leaf: return
-
-    for child in cu.child:
-        print_datas(child)   
-    
-    return
-
-def Gain(node, feature):
-
-    q = node.p/(node.p+node.n)
-    return Entropy(q) - reminder(node, feature)
-
-def Entropy(q):
-
-    # print("entropy")
-    # print("q is ", q)
-
-    if q == 0 or q == 1: return 0
-
-    return -1 * (q*math.log2(q) + (1-q)*math.log2(1-q))
-
-def reminder(node, feature):  
-
-    data = node.data
-    domains = node.domains
-
-    p = node.p
-    n = node.n
-    sum = 0
-
-    for key in domains[feature].keys():  # iterate through every element in domain
-        # print(key)
-        pk = nk = 0
-        
-        for vi in range(len(data[feature])):  # iterate through every rows of current col
-
-            if data.loc[vi, feature] == key and data.loc[vi, 'Outputy'] == 'Yes':
-                pk = pk + 1
-            elif data.loc[vi, feature] == key and data.loc[vi, 'Outputy'] == 'No':
-                nk = nk + 1
-
-        sum = sum + ((pk+nk)/(p+n) * Entropy(pk/(pk+nk)))
-
-    return sum
-
-
-# select the importance // feature selection
-def select_importance(node):
-
-    x_data = node.data.drop('Outputy', axis=1) # drop last column
-    
-    max_gain = 0
-    feature = ''
-    for col_name in x_data:
-        if Gain(node, col_name) > max_gain:
-            max_gain = Gain(node, col_name) 
-            feature = col_name
-
-    node.gain = max_gain
-    node.selected_feature = feature
+ 
 
 
 def learn_decision_tree(cu, height):
@@ -229,6 +110,18 @@ def prune_tree(cu):
         # print(select.selected_feature)
         select.leaf = True
         select.selected_feature = ""
+        select.child.clear()
+
+    return
+
+def classify_test(cu, test_data):
+
+    x_data = test_data.iloc[: , :-1]
+    y_data = test_data.iloc[: , -1]
+
+    test_cls = [len(x_data)]
+
+    # for 
 
     return
 
@@ -237,22 +130,20 @@ def main():
 
     data = pd.read_csv('restaurant.csv', header = 0)
     root = Node(data)
-    # print(root.data)
 
     learn_decision_tree(root, 0)
-    print_feature(root)
-    # print_class(root)
-    # print_datas(root)
+    print_feature_class(root)
+
     prune_tree(root)
-
     print("after trim")
-    print_feature(root)
-    # print_class(root)
-
     print_feature_class(root)
 
 
-    # p_data = pd.read_csv('restaurant_predict.csv', header = 0)
+    # pred_data = pd.read_csv('restaurant_predict.csv', header = 0)
+    test_data = pd.read_csv('restaurant_test.csv',header = None)
+    
+    classify_test(root, test_data)
+
 
 
 
