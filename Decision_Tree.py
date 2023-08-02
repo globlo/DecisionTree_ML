@@ -1,4 +1,4 @@
-import pandas as pd
+
 from print import *
 from Information_Gain import *
 
@@ -18,45 +18,59 @@ class Node:
         self.get_domains(data)
         
         self.gain = 0
-        self.p = self.domains['Outputy']['Yes'] if "Yes" in self.domains['Outputy'] else 0
-        self.n = self.domains['Outputy']['No'] if "No" in self.domains['Outputy'] else 0
+        self.p = self.domains[str(len(self.data[0])-1)]['Yes'] if "Yes" in self.domains[str(len(self.data[0])-1)].keys() else 0
+        self.n = self.domains[str(len(self.data[0])-1)]['No'] if "No" in self.domains[str(len(self.data[0])-1)].keys() else 0
 
         self.get_class()
     
     def get_class(self):
-        self.cls = max(self.domains['Outputy'], key=self.domains['Outputy'].get)  # classify
+        self.cls = max(self.domains[str(len(self.data[0])-1)], key=self.domains[str(len(self.data[0])-1)].get)  # classify
 
         
     def get_domains(self,data):
 
-        for col_name in data:
+        self.domains = dict()
+        for col in range(len(data[0])):
+
+            col_name = data[0][col]
             self.domains[col_name] = dict()
-            for dt in data[col_name]:
+            
+            for row in range(1,len(data)):
 
-                if dt in self.domains[col_name]:
-                    self.domains[col_name][dt] = self.domains[col_name][dt] + 1
+                if data[row][col] in self.domains[col_name].keys():
+                    self.domains[col_name][data[row][col]]= self.domains[col_name][data[row][col]] + 1
                 else:
-                    self.domains[col_name][dt] = 1
-
-        # print(self.domains)
+                    self.domains[col_name][data[row][col]] = 1
+        # print(domains)
         
 
     def generate_childs(self, feature): #chk if leaf
-        
+
+    
         for key in self.domains[feature].keys(): 
 
-            new_data = self.data[self.data[feature] == key].drop(feature, axis=1)  # grouping the new dataset
-            new_data.reset_index(inplace=True, drop=True) 
-
+            new_data = self.filter_data(key, feature)
             new_node = Node(new_data)
             (self.child).append(new_node)
 
             new_node.is_leaf()
         
         return
+    
+    def filter_data(self, key, feature):
+
+        new_data = []
+        new_data.append(self.data[0])  # add the attributes
+
+        for row in range(1, len(self.data)):  # grouping by rows 
+            if self.data[row][int(feature)] == key:
+                new_data.append(self.data[row])
+
+
+        return new_data
             
     def is_leaf(self):
-        if len(self.domains['Outputy']) == 1:
+        if len(self.domains[str(len(self.data[0])-1)]) == 1:
             self.leaf = True
 
     def is_twig(self):
@@ -72,29 +86,27 @@ class Node:
  
 
 
-def learn_decision_tree(cu, height):
+def learn_decision_tree(cu, height, attributes):
 
     cu.height = height
 
-    if cu.leaf:  
+    if cu.leaf or len(attributes) <= 0:  
         return 
 
-    if len(cu.domains) == 1:  # check if attributes is empty
-        return
         
-    select_importance(cu)  ## feature selection
-
+    feature = select_importance(cu, attributes)  ## feature selection
+    attributes.remove(feature) # update attributes
+        
     cu.generate_childs(cu.selected_feature)
+
     for child in cu.child:
-        learn_decision_tree(child, height+1)
+        learn_decision_tree(child, height+1, attributes)
 
     return
 
 def prune_tree(cu):
 
-    if cu.leaf:  
-        # print( "reach to the leaf")
-        return 
+    if cu.leaf:  return 
     
     select = None
     least_gain = 1.1  # since Gain range: 0-1
@@ -106,45 +118,70 @@ def prune_tree(cu):
         prune_tree(child)
 
     if select != None:  ## trim the twig
-        # print("the selected : ")
-        # print(select.selected_feature)
+
         select.leaf = True
         select.selected_feature = ""
         select.child.clear()
 
     return
 
-def classify_test(cu, test_data):
+# def classify_test(cu, test_data):
 
-    x_data = test_data.iloc[: , :-1]
-    y_data = test_data.iloc[: , -1]
+#     x_data = test_data.iloc[: , :-1]
+#     y_data = test_data.iloc[: , -1]
 
-    test_cls = [len(x_data)]
+#     test_cls = [len(x_data)]
 
-    # for 
+#     # for 
 
-    return
+#     return
 
 
 def main():
 
-    data = pd.read_csv('restaurant.csv', header = 0)
+
+    # data = pd.read_csv('restaurant.csv', header = 0)
+    data = load_data('restaurant.csv')
+    attributes = []
+    for i in range(len(data[0]) -1): attributes.append(str(i))  # store attributes 
+
+
     root = Node(data)
 
-    learn_decision_tree(root, 0)
-    print_feature_class(root)
-
+    learn_decision_tree(root, 0, attributes)
+    print_class(root)
     prune_tree(root)
-    print("after trim")
-    print_feature_class(root)
-
-
-    # pred_data = pd.read_csv('restaurant_predict.csv', header = 0)
-    test_data = pd.read_csv('restaurant_test.csv',header = None)
+    print_class(root)
     
-    classify_test(root, test_data)
 
 
+    
+def load_data(filename):
+    with open(filename, 'r') as f:
+        results = []
+        for fr in f:  ## add name in the datas
+            data = fr.rstrip('\n').split(',')
+        
+        cl =[]
+        for i in range(len(data)):
+            cl.append(str(i))
+        results.append(cl)
+
+        f.seek(0)
+        for row in f:
+                # print(row)
+                col = []
+                data = row.rstrip('\n').split(',')
+                for variable in data:
+                    # print(variable)
+                     
+                    col.append(variable)
+                
+                results.append(col)
+
+        # print(results)
+    return results
+     
 
 
 # Calling main function

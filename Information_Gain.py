@@ -24,11 +24,11 @@ def reminder(node, feature):
         # print(key)
         pk = nk = 0
         
-        for vi in range(len(data[feature])):  # iterate through every rows of current col
+        for vi in range(len(data)):  # iterate through every rows of current col
 
-            if data.loc[vi, feature] == key and data.loc[vi, 'Outputy'] == 'Yes':
+            if data[vi][int(feature)] == key and data[vi][-1] == 'Yes':
                 pk = pk + 1
-            elif data.loc[vi, feature] == key and data.loc[vi, 'Outputy'] == 'No':
+            elif data[vi][int(feature)] == key and data[vi][-1] == 'No':
                 nk = nk + 1
 
         sum = sum + ((pk+nk)/(p+n) * Entropy(pk/(pk+nk)))
@@ -36,18 +36,21 @@ def reminder(node, feature):
     return sum
 
 # select the importance // feature selection
-def select_importance(node):
+def select_importance(node, attributes):
 
-    # x_data = node.data.drop('Outputy', axis=1) # drop last column
-    x_data = node.data.iloc[: , :-1]
-    
     max_gain = 0
     feature = ''
-    for col_name in x_data:
+    for col_name in attributes:
+
+        print("col name is ", col_name)
+
         if Gain(node, col_name) > max_gain:
             max_gain = Gain(node, col_name) 
             feature = col_name
 
     node.gain = max_gain
     node.selected_feature = feature
-
+    print("gain: ", node.gain)
+    print("feature selected: ", node.selected_feature)
+    
+    return  feature
