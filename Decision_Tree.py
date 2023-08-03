@@ -131,15 +131,11 @@ def prune_tree(cu):
 def get_class(cu, test_row ): # allows to predict the class by reach out to leaf
 
     if cu.leaf: 
-        # print(cu.selected_feature)
         return cu.cls
     
     # get the cu.selected_feature and chk that feature in the row
     feature = cu.selected_feature  ## str 
     value = test_row[int(feature)]
-    # print(" feature is ", feature)
-    # print("value is " ,value)
-    # print("\n")
 
     cls = ""
     for child_node in cu.child:
@@ -203,8 +199,8 @@ def main():
 
 
 
-   
-    
+
+
 
 def load_data(filename):
     with open(filename, 'r') as f:
