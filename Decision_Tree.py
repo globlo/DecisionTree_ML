@@ -184,6 +184,7 @@ def main():
 
     prune_tree(root)
     print_feature(root)
+    print_feature_class(root)
 
 
     ###########################     restaurant_test.csv      ##############################
@@ -191,7 +192,6 @@ def main():
     pred__cls_test = predict_class(root, data_test)
 
     print("Accuracy for : restaurant_test.csv")
-    print("Accuracy: ", end='')
     print(accuracy(pred__cls_test, y_test))
 
     ###########################     restaurant_predict.csv     #############################
@@ -202,10 +202,10 @@ def main():
  
 
 
+
+   
     
 
-
-    
 def load_data(filename):
     with open(filename, 'r') as f:
         results = []
