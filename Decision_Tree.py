@@ -8,6 +8,7 @@ class Node:
 
         self.cls =""
         self.selected_feature = ""
+        self.decision_branch = ""
         self.data = data
     
         self.child = []
@@ -49,15 +50,17 @@ class Node:
     
         for key in self.domains[feature].keys(): 
 
-            new_data = self.filter_data(key, feature)
+            new_data = self.group_data(key, feature)
             new_node = Node(new_data)
+            new_node.decision_branch = key
+
             (self.child).append(new_node)
 
             new_node.is_leaf()
         
         return
     
-    def filter_data(self, key, feature):
+    def group_data(self, key, feature):  # allows to grouping the data by rows according to the key in domains
 
         new_data = []
         new_data.append(self.data[0])  # add the attributes
@@ -125,33 +128,80 @@ def prune_tree(cu):
 
     return
 
-# def classify_test(cu, test_data):
+def get_class(cu, test_row ): # allows to predict the class by reach out to leaf
 
-#     x_data = test_data.iloc[: , :-1]
-#     y_data = test_data.iloc[: , -1]
+    if cu.leaf: 
+        # print(cu.selected_feature)
+        return cu.cls
+    
+    # get the cu.selected_feature and chk that feature in the row
+    feature = cu.selected_feature  ## str 
+    value = test_row[int(feature)]
+    # print(" feature is ", feature)
+    # print("value is " ,value)
+    # print("\n")
 
-#     test_cls = [len(x_data)]
+    cls = ""
+    for child_node in cu.child:
+        
+        if child_node.decision_branch == value:
+        #    print("value is ", value)
+           cls =  get_class(child_node, test_row)
 
-#     # for 
+    return cls
 
-#     return
+def predict_class(root, test_data):
 
+    predicttion = []
+
+    for row in range(1,len(test_data)):  # iterate through all the rows except the name row
+
+        pred = get_class(root, test_data[row]) 
+        # print("================  predicted velue for [",row,"] : ",pred)
+        predicttion.append(pred)
+
+    return predicttion
+
+def accuracy(predction, outputy):
+
+    print("prediction: ",predction)
+    print("outputy: ",outputy)
+
+    correct = 0
+    for i in range(len(outputy)):
+        if predction[i] == outputy[i]:
+            correct = correct + 1
+    return correct/len(outputy)
 
 def main():
 
 
-    # data = pd.read_csv('restaurant.csv', header = 0)
-    data = load_data('restaurant.csv')
-    attributes = []
-    for i in range(len(data[0]) -1): attributes.append(str(i))  # store attributes 
-
-
+    ###########################     restaurant.csv     ##############################
+    data, y_data, attributes = load_data('restaurant.csv')
     root = Node(data)
 
     learn_decision_tree(root, 0, attributes)
-    print_class(root)
+
     prune_tree(root)
-    print_class(root)
+    print_feature(root)
+
+
+    ###########################     restaurant_test.csv      ##############################
+    data_test, y_test, test_attributes = load_data('restaurant_test.csv')
+    pred__cls_test = predict_class(root, data_test)
+
+    print("Accuracy for : restaurant_test.csv")
+    print("Accuracy: ", end='')
+    print(accuracy(pred__cls_test, y_test))
+
+    ###########################     restaurant_predict.csv     #############################
+    data_pred, y_pred, test_attributes = load_data('restaurant_predict.csv')
+    pred__cls_pred = predict_class(root, data_pred)
+    print("Predictions for : restaurant_test.csv")
+    print(pred__cls_pred)
+ 
+
+
     
 
 
@@ -159,8 +209,8 @@ def main():
 def load_data(filename):
     with open(filename, 'r') as f:
         results = []
-        for fr in f:  ## add name in the datas
-            data = fr.rstrip('\n').split(',')
+        for fr in f:  ## add attribute names in the datas
+            data = fr.rstrip('\n').replace(" ", "").split(',')
         
         cl =[]
         for i in range(len(data)):
@@ -171,7 +221,7 @@ def load_data(filename):
         for row in f:
                 # print(row)
                 col = []
-                data = row.rstrip('\n').split(',')
+                data = row.rstrip('\n').replace(" ", "").split(',')
                 for variable in data:
                     # print(variable)
                      
@@ -179,8 +229,15 @@ def load_data(filename):
                 
                 results.append(col)
 
-        # print(results)
-    return results
+    y_data = []
+    res = [ele[-1:] for ele in results]
+    for i in range(1, len(res)):
+        y_data.append(res[i][0])
+
+    attributes =[]
+    for atbt in range(len(results[0]) -1): attributes.append(str(atbt))  # store attributes for reference
+
+    return results, y_data, attributes
      
 
 

@@ -42,7 +42,7 @@ def select_importance(node, attributes):
     feature = ''
     for col_name in attributes:
 
-        print("col name is ", col_name)
+        # print("col name is ", col_name)
 
         if Gain(node, col_name) > max_gain:
             max_gain = Gain(node, col_name) 
@@ -50,7 +50,7 @@ def select_importance(node, attributes):
 
     node.gain = max_gain
     node.selected_feature = feature
-    print("gain: ", node.gain)
-    print("feature selected: ", node.selected_feature)
+    # print("gain: ", node.gain)
+    # print("feature selected: ", node.selected_feature)
     
     return  feature

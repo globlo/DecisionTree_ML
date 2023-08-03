@@ -31,7 +31,8 @@ def print_class(cu):
 def print_feature(cu):  
 
     # print("height is ", count)
-    print("    |-----"*cu.height, cu.selected_feature, end="")
+    # print("   |-----"*cu.height, cu.selected_feature, end="")
+    print("           |-----"*cu.height,"(" ,cu.decision_branch,"):" ,cu.selected_feature, end="")
 
     if cu.is_twig():
         print("(twig)", end="")
