@@ -178,6 +178,8 @@ def main():
 
     learn_decision_tree(root, 0, attributes)
 
+    # print_feature(root)
+
     prune_tree(root)
     print_feature(root)
     print_feature_class(root)
